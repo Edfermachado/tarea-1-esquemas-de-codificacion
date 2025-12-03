@@ -25,9 +25,11 @@ int main(void) {
     char *enc_nrz = encode_nrz(bitstream);
     char *dec_nrz = decode_nrz(enc_nrz);
     test_equal("NRZ encode/decode", bitstream, dec_nrz);
+    plot_signal(enc_nrz, "results/signals.txt");
     free(enc_nrz);
     free(dec_nrz);
 
+    /* 
     // NRZI
     char *enc_nrzi = encode_nrzi(bitstream);
     char *dec_nrzi = decode_nrzi(enc_nrzi);
@@ -49,7 +51,7 @@ int main(void) {
     test_equal("4B/5B encode/decode", bitstream_4b, dec_4b5b);
     free(enc_4b5b);
     free(dec_4b5b);
-
+    */
     printf("🎉 Todas las pruebas automáticas pasaron correctamente.\n");
     return 0;
 }

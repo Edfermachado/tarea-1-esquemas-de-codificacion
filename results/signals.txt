@@ -1,0 +1,5 @@
+Diagrama de señal codificada
+Entrada: HHLLHL
+
+Tiempo:   0   1   2   3   4   5 
+Señal:   ==== ====|____ ____|====|____
