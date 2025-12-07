@@ -203,15 +203,123 @@ char *decode_manchester(const char *encoded) {
 // 4B/5B
 // ============================================
 
+typedef struct {
+    const char *b4;
+    const char *b5;
+} Code4B5B;
+
+static const Code4B5B TABLE_4B5B[] = {
+    {"0000", "11110"},
+    {"0001", "01001"},
+    {"0010", "10100"},
+    {"0011", "10101"},
+    {"0100", "01010"},
+    {"0101", "01011"},
+    {"0110", "01110"},
+    {"0111", "01111"},
+    {"1000", "10010"},
+    {"1001", "10011"},
+    {"1010", "10110"},
+    {"1011", "10111"},
+    {"1100", "11010"},
+    {"1101", "11011"},
+    {"1110", "11100"},
+    {"1111", "11101"}
+};
+
 char *encode_4b5b(const char *bitstream) {
     // TODO: Implementar
     // Cada grupo de 4 bits se convierte en 5 bits según tabla estándar
-    return NULL;
+      if (!is_valid_bitstream(bitstream)) {
+        fprintf(stderr, "Error: bitstream inválido en 4B5B\n");
+        return NULL;
+    }
+
+    size_t len = strlen(bitstream);
+    if (len % 4 != 0) {
+        fprintf(stderr, "Error: longitud %zu no es múltiplo de 4\n", len);
+        return NULL;
+    }
+
+    size_t groups = len / 4;
+    char *encoded = safe_malloc(groups * 5 + 1);
+
+    char chunk[5];
+    chunk[4] = '\0';
+
+    size_t pos = 0;
+
+    for (size_t i = 0; i < groups; i++) {
+
+        memcpy(chunk, &bitstream[i * 4], 4);
+
+        int found = 0;
+
+        for (int j = 0; j < 16; j++) {
+            if (strcmp(chunk, TABLE_4B5B[j].b4) == 0) {
+                memcpy(&encoded[pos], TABLE_4B5B[j].b5, 5);
+                pos += 5;
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            fprintf(stderr, "Error: No se encontró codificación para %s\n", chunk);
+            free(encoded);
+            return NULL;
+        }
+    }
+
+    encoded[pos] = '\0';
+    return encoded;
 }
 
 char *decode_4b5b(const char *encoded) {
     // TODO: Implementar
-    return NULL;
+     if (!is_valid_bitstream(encoded)) {
+        fprintf(stderr, "Error: encoded inválido en 4B5B\n");
+        return NULL;
+    }
+
+    size_t len = strlen(encoded);
+    if (len % 5 != 0) {
+        fprintf(stderr, "Error: longitud %zu no es múltiplo de 5\n", len);
+        return NULL;
+    }
+
+    size_t groups = len / 5;
+    char *decoded = safe_malloc(groups * 4 + 1);
+
+    char chunk[6];
+    chunk[5] = '\0';
+
+    size_t pos = 0;
+
+    for (size_t i = 0; i < groups; i++) {
+
+        memcpy(chunk, &encoded[i * 5], 5);
+
+        int found = 0;
+
+        for (int j = 0; j < 16; j++) {
+            if (strcmp(chunk, TABLE_4B5B[j].b5) == 0) {
+                memcpy(&decoded[pos], TABLE_4B5B[j].b4, 4);
+                pos += 4;
+                found = 1;
+                break;
+            }
+        }
+
+        if (!found) {
+            fprintf(stderr, "Error: Secuencia 5B desconocida: %s\n", chunk);
+            free(decoded);
+            return NULL;
+        }
+    }
+
+    decoded[pos] = '\0';
+    return decoded;
 }
 
 // ============================================

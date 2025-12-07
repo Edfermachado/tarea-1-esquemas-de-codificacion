@@ -45,15 +45,16 @@ int main(void) {
     plot_signal(enc_man, "results/signals.txt");
     free(enc_man);
     free(dec_man);
-    /*
+    
     // 4B/5B
     const char *bitstream_4b = "101011110000"; // múltiplo de 4 bits
     char *enc_4b5b = encode_4b5b(bitstream_4b);
     char *dec_4b5b = decode_4b5b(enc_4b5b);
     test_equal("4B/5B encode/decode", bitstream_4b, dec_4b5b);
+    plot_signal(enc_4b5b, "results/signals.txt");
     free(enc_4b5b);
     free(dec_4b5b);
-    */
+    
     printf("🎉 Todas las pruebas automáticas pasaron correctamente.\n");
     return 0;
 }
