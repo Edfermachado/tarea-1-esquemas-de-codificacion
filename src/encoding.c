@@ -79,15 +79,56 @@ char *decode_nrz(const char *encoded) {
 // ============================================
 
 char *encode_nrzi(const char *bitstream) {
-    // TODO: Implementar
-    // En NRZI: '1' = transición, '0' = sin transición
-    return NULL;
+    if (!is_valid_bitstream(bitstream)) {
+        fprintf(stderr, "Error: bitstream contiene caracteres inválidos\n");
+        return NULL;
+    }
+
+    size_t length = strlen(bitstream);
+
+    char *encoded = safe_malloc(length + 1);
+    char current_level = 'H'; // Nivel inicial fijo para tu proyecto
+
+    for (size_t i = 0; i < length; i++) {
+        if (bitstream[i] == '1') {
+            current_level = (current_level == 'H') ? 'L' : 'H';
+        }
+        encoded[i] = current_level;
+    }
+
+    encoded[length] = '\0';
+    return encoded;
 }
 
+
 char *decode_nrzi(const char *encoded) {
-    // TODO: Implementar
-    return NULL;
+    if (!encoded) {
+        fprintf(stderr, "Error: encoded es NULL\n");
+        return NULL;
+    }
+
+    size_t length = strlen(encoded);
+    char *decoded = safe_malloc(length + 1);
+
+    char prev = 'H'; // Nivel inicial ACORDADO
+
+    for (size_t i = 0; i < length; i++) {
+        char curr = toupper(encoded[i]);
+
+        if (curr != 'H' && curr != 'L') {
+            fprintf(stderr, "Error: encoded contiene caracteres inválidos\n");
+            free(decoded);
+            return NULL;
+        }
+
+        decoded[i] = (curr != prev) ? '1' : '0';
+        prev = curr;
+    }
+
+    decoded[length] = '\0';
+    return decoded;
 }
+
 
 // ============================================
 // Manchester
@@ -97,12 +138,65 @@ char *encode_manchester(const char *bitstream) {
     // TODO: Implementar
     // En Manchester: '0' = transición bajo->alto, '1' = transición alto->bajo
     // (o viceversa según convención IEEE/Thomas)
-    return NULL;
+
+    if (!bitstream) return NULL;
+
+    size_t len = strlen(bitstream);
+    char *out = malloc(len * 2 + 1);
+    if (!out) return NULL;
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < len; i++) {
+        if (bitstream[i] == '0') {
+            out[j++] = '0';
+            out[j++] = '1';
+        } else if (bitstream[i] == '1') {
+            out[j++] = '1';
+            out[j++] = '0';
+        } else {
+            // Carácter inválido
+            free(out);
+            return NULL;
+        }
+    }
+
+    out[j] = '\0';
+    return out;
 }
 
 char *decode_manchester(const char *encoded) {
     // TODO: Implementar
-    return NULL;
+     if (!encoded) return NULL;
+
+    size_t len = strlen(encoded);
+    if (len % 2 != 0) {
+        fprintf(stderr, "Manchester inválido\n");
+        return NULL;
+    }
+
+    char *out = malloc(len / 2 + 1);
+    if (!out) return NULL;
+
+    size_t j = 0;
+
+    for (size_t i = 0; i < len; i += 2) {
+        char a = encoded[i];
+        char b = encoded[i + 1];
+
+        if (a == '0' && b == '1') {
+            out[j++] = '0';
+        } else if (a == '1' && b == '0') {
+            out[j++] = '1';
+        } else {
+            // Secuencia inválida
+            free(out);
+            return NULL;
+        }
+    }
+
+    out[j] = '\0';
+    return out;
 }
 
 // ============================================
@@ -133,10 +227,24 @@ char *decode_4b5b(const char *encoded) {
  */
 static int level_from_char(char c) {
     c = toupper(c);
-    if (c == 'H') return 1;
-    if (c == 'L') return 0;
-    return -1;
+
+    switch (c) {
+        case 'H': return 1;   // Alto
+        case 'L': return 0;   // Bajo
+
+        // Manchester y codificaciones binarias directas
+        case '1': return 1;
+        case '0': return 0;
+
+        // Bipolar / AMI
+        case '+': return 1;
+        case '-': return -1;
+
+        default:
+            return -1; // Desconocido
+    }
 }
+
 
 
 /**
@@ -158,14 +266,33 @@ void plot_signal(const char *encoded, const char *filename) {
         return;
     }
 
-    FILE *f = fopen(filename, "w");
+    // Modo append, así no sobrescribes el archivo
+    FILE *f = fopen(filename, "a");
     if (!f) {
         fprintf(stderr, "Error: no se pudo abrir archivo '%s'\n", filename);
         return;
     }
 
+    fprintf(f, "\n--------------------------------\n");
     fprintf(f, "Diagrama de señal codificada\n");
     fprintf(f, "Entrada: %s\n\n", encoded);
+
+    //
+    // Detectar si es Manchester (dos bits por símbolo y siempre 01 o 10)
+    //
+    int is_manchester = 1;
+    if (length % 2 != 0) {
+        is_manchester = 0;  // Manchester siempre tiene longitud par
+    } else {
+        for (size_t i = 0; i < length; i += 2) {
+            char a = encoded[i];
+            char b = encoded[i+1];
+            if (!((a=='0' && b=='1') || (a=='1' && b=='0'))) {
+                is_manchester = 0;
+                break;
+            }
+        }
+    }
 
     //
     // 1) Línea de tiempos
@@ -184,21 +311,28 @@ void plot_signal(const char *encoded, const char *filename) {
     int prev = level_from_char(encoded[0]);
 
     for (size_t i = 0; i < length; i++) {
+
         int lvl = level_from_char(encoded[i]);
 
-        // Añadimos una barra vertical para mostrar la transición
+        // Transición normal: comparar con anterior
         if (i > 0 && lvl != prev)
             fprintf(f, "|");
         else
             fprintf(f, " ");
 
-        // Dibujamos el nivel
+        // Dibujar nivel
         if (lvl == 1)
-            fprintf(f, "====");   // Nivel alto
+            fprintf(f, "====");
         else if (lvl == 0)
-            fprintf(f, "____");   // Nivel bajo
+            fprintf(f, "____");
         else
-            fprintf(f, "????");   // Nivel desconocido (para esquemas nuevos)
+            fprintf(f, "????");
+
+        // Si es Manchester, marcamos la transición en medio del bit
+        if (is_manchester && (i % 2 == 0)) {
+            // Entre encoded[i] y encoded[i+1]
+            fprintf(f, "|");
+        }
 
         prev = lvl;
     }

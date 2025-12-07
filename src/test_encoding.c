@@ -29,21 +29,23 @@ int main(void) {
     free(enc_nrz);
     free(dec_nrz);
 
-    /* 
+    
     // NRZI
     char *enc_nrzi = encode_nrzi(bitstream);
     char *dec_nrzi = decode_nrzi(enc_nrzi);
     test_equal("NRZI encode/decode", bitstream, dec_nrzi);
+    plot_signal(enc_nrzi, "results/signals.txt");
     free(enc_nrzi);
     free(dec_nrzi);
-
+     
     // Manchester
     char *enc_man = encode_manchester(bitstream);
     char *dec_man = decode_manchester(enc_man);
     test_equal("Manchester encode/decode", bitstream, dec_man);
+    plot_signal(enc_man, "results/signals.txt");
     free(enc_man);
     free(dec_man);
-
+    /*
     // 4B/5B
     const char *bitstream_4b = "101011110000"; // múltiplo de 4 bits
     char *enc_4b5b = encode_4b5b(bitstream_4b);
