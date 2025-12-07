@@ -456,6 +456,28 @@ void plot_signal(const char *encoded, const char *filename) {
 void add_noise(char *bitstream, double ber) {
     // TODO: Implementar
     // Invierte cada bit con probabilidad 'ber'
-    (void)bitstream;
-    (void)ber;
+     if (bitstream == NULL) {
+        fprintf(stderr, "Error: add_noise recibió bitstream NULL\n");
+        return;
+    }
+
+    if (ber <= 0.0) return;  // Sin ruido
+    if (ber > 1.0)  ber = 1.0;
+
+    // Inicializamos el generador de números aleatorios una sola vez
+    static int seed_init = 0;
+    if (!seed_init) {
+        srand((unsigned)time(NULL));
+        seed_init = 1;
+    }
+
+    for (size_t i = 0; bitstream[i] != '\0'; i++) {
+
+        double r = (double)rand() / RAND_MAX;  // número 0.0 - 1.0
+
+        if (r < ber) {
+            // Invertimos el bit
+            bitstream[i] = (bitstream[i] == '0') ? '1' : '0';
+        }
+    }
 }
