@@ -20,11 +20,12 @@ int main(void) {
 
     // Casos de prueba base — ajusta o amplía según tu curso
     const char *bitstream = "110010";
-
+    const double ber = 0.1; //Cedula 30.532.641 => 0.1
     // NRZ
     char *enc_nrz = encode_nrz(bitstream);
     char *dec_nrz = decode_nrz(enc_nrz);
     test_equal("NRZ encode/decode", bitstream, dec_nrz);
+    add_noise(enc_nrz, ber);
     plot_signal(enc_nrz, "results/signals.txt");
     free(enc_nrz);
     free(dec_nrz);
@@ -34,6 +35,7 @@ int main(void) {
     char *enc_nrzi = encode_nrzi(bitstream);
     char *dec_nrzi = decode_nrzi(enc_nrzi);
     test_equal("NRZI encode/decode", bitstream, dec_nrzi);
+    add_noise(enc_nrzi, ber);
     plot_signal(enc_nrzi, "results/signals.txt");
     free(enc_nrzi);
     free(dec_nrzi);
@@ -42,6 +44,7 @@ int main(void) {
     char *enc_man = encode_manchester(bitstream);
     char *dec_man = decode_manchester(enc_man);
     test_equal("Manchester encode/decode", bitstream, dec_man);
+    add_noise(enc_man, ber);
     plot_signal(enc_man, "results/signals.txt");
     free(enc_man);
     free(dec_man);
@@ -51,6 +54,7 @@ int main(void) {
     char *enc_4b5b = encode_4b5b(bitstream_4b);
     char *dec_4b5b = decode_4b5b(enc_4b5b);
     test_equal("4B/5B encode/decode", bitstream_4b, dec_4b5b);
+    add_noise(enc_4b5b, ber);
     plot_signal(enc_4b5b, "results/signals.txt");
     free(enc_4b5b);
     free(dec_4b5b);
