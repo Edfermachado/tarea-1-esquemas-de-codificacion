@@ -7,6 +7,7 @@
 # Compilador y banderas
 CC = gcc
 CFLAGS = -Wall -Werror -std=c11
+LDFLAGS = -lm
 SRC_DIR = src
 RESULTS_DIR = results
 BIN_DIR = bin
@@ -29,7 +30,7 @@ all: setup $(TEST_BIN)
 
 $(TEST_BIN): $(SRCS) $(TEST_SRC)
 	@mkdir -p $(BIN_DIR)
-	$(CC) $(CFLAGS) -o $(TEST_BIN) $(SRCS) $(TEST_SRC)
+	$(CC) $(CFLAGS) -o $(TEST_BIN) $(SRCS) $(TEST_SRC) $(LDFLAGS)
 
 ##############################################
 # Pruebas automáticas

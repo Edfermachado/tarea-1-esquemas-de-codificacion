@@ -356,7 +356,7 @@ char *decode_4b5b(const char *encoded)
 
         if (!found)
         {
-            //fprintf(stderr, "Error: Secuencia 5B desconocida: %s\n", chunk);
+            // fprintf(stderr, "Error: Secuencia 5B desconocida: %s\n", chunk);
             free(decoded);
             return NULL;
         }
@@ -405,16 +405,19 @@ static int level_from_char(char c)
  * @param filename Nombre del archivo de salida
  */
 
-void plot_signal(const char *encoded, const char *filename) 
+void plot_signal(const char *encoded, const char *filename)
 {
-    if (!encoded || !filename) return;
+    if (!encoded || !filename)
+        return;
 
     size_t len = strlen(encoded);
-    if (len == 0) return;
+    if (len == 0)
+        return;
     const char *cedula = "30532641";
     double ber = 0.01;
     FILE *f = fopen(filename, "a"); // Append
-    if (!f) return;
+    if (!f)
+        return;
 
     fprintf(f, "\n========================================\n");
     fprintf(f, "Cédula: %s | BER: %.2f\n", cedula, ber);
@@ -423,12 +426,15 @@ void plot_signal(const char *encoded, const char *filename)
 
     // Detectar Manchester
     int is_manchester = 0;
-    if (len % 2 == 0) {
+    if (len % 2 == 0)
+    {
         is_manchester = 1;
-        for (size_t i = 0; i < len; i += 2) {
+        for (size_t i = 0; i < len; i += 2)
+        {
             char a = encoded[i];
-            char b = encoded[i+1];
-            if (!((a=='0' && b=='1') || (a=='1' && b=='0'))) {
+            char b = encoded[i + 1];
+            if (!((a == '0' && b == '1') || (a == '1' && b == '0')))
+            {
                 is_manchester = 0;
                 break;
             }
@@ -445,17 +451,19 @@ void plot_signal(const char *encoded, const char *filename)
     fprintf(f, "Señal:  ");
     int prev = level_from_char(encoded[0]);
 
-    for (size_t i = 0; i < len; i++) {
+    for (size_t i = 0; i < len; i++)
+    {
         int lvl = level_from_char(encoded[i]);
         if (i > 0 && lvl != prev)
             fprintf(f, "|");
         else
             fprintf(f, " ");
 
+        // Modificación sugerida dentro de plot_signal
         if (lvl == 1)
-            fprintf(f, "====");
+            fprintf(f, "----"); // Representa nivel alto
         else if (lvl == 0)
-            fprintf(f, "____");
+            fprintf(f, "____"); // Representa nivel bajo
         else
             fprintf(f, "????");
 
@@ -467,7 +475,6 @@ void plot_signal(const char *encoded, const char *filename)
     }
 
     fprintf(f, "\n");
-    fprintf(f, "----------------------------------------\n");
 
     fclose(f);
 }
@@ -476,20 +483,27 @@ void plot_signal(const char *encoded, const char *filename)
 // Simulación de ruido
 // ============================================
 
-void add_noise(char *bitstream, double ber) {
-    if (!bitstream) return;
-    if (ber <= 0.0) return;
-    if (ber > 1.0) ber = 1.0;
+void add_noise(char *bitstream, double ber)
+{
+    if (!bitstream)
+        return;
+    if (ber <= 0.0)
+        return;
+    if (ber > 1.0)
+        ber = 1.0;
 
     static int seed_init = 0;
-    if (!seed_init) {
+    if (!seed_init)
+    {
         srand((unsigned)time(NULL));
         seed_init = 1;
     }
 
-    for (size_t i = 0; bitstream[i]; i++) {
+    for (size_t i = 0; bitstream[i]; i++)
+    {
         double r = (double)rand() / RAND_MAX;
-        if (r < ber) {
+        if (r < ber)
+        {
             bitstream[i] = (bitstream[i] == '0') ? '1' : '0';
         }
     }

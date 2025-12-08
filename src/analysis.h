@@ -4,24 +4,26 @@
 #include <stddef.h>
 #include <stdio.h>
 
-// Función puntero para codificación/decodificación
-typedef char* (*encode_fn)(const char*);
-typedef char* (*decode_fn)(const char*);
+// 1. Definición de tipos para punteros a funciones (Hacer que coincidan con encoding.h)
+typedef char* (*encode_ptr)(const char*);
+typedef char* (*decode_ptr)(const char*);
 
-// Genera un mensaje aleatorio de n bits ('0'/'1')
+// 2. Generación y Utilidades
 char* generate_random_bits(size_t n);
-
-// Cuenta el número de bits diferentes entre dos cadenas
 size_t count_bit_errors(const char* original, const char* received);
+size_t get_encoded_length(const char* bitstream, encode_ptr encode);
 
-// Devuelve el tamaño del mensaje codificado (overhead)
-size_t get_encoded_length(const char* bitstream, encode_fn encode);
+// 3. Reporte de Análisis (Parte B)
+void prepare_analysis_report(const char *filename, const char *cedula, double personal_ber);
 
-// Ejecuta N simulaciones con ruido y reporta estadísticas
-void run_simulations(FILE* md, const char* bitstream, double ber, int N, 
-                     const char* name, encode_fn encode, decode_fn decode);
+// 4. Simulaciones Estadísticas
+// NOTA: Usamos los typedef encode_ptr/decode_ptr para que la firma sea limpia y consistente
+void run_simulations(const char *filename, const char *bitstream, double ber, int N,
+                     const char *name, encode_ptr encode, decode_ptr decode);
 
-// Simula ráfagas de errores de longitud 'burst_len'
+void run_ber_sensitivity_analysis(const char *filename, const char *bitstream);
+
+// 5. Inyección de Errores
 void simulate_burst_errors(char* bitstream, double ber, size_t burst_len);
 
 #endif
