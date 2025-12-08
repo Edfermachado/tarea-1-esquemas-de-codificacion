@@ -12,7 +12,7 @@ RESULTS_DIR = results
 BIN_DIR = bin
 
 # Archivos fuente
-SRCS = $(SRC_DIR)/encoding.c $(SRC_DIR)/utils.c
+SRCS = $(SRC_DIR)/encoding.c $(SRC_DIR)/utils.c $(SRC_DIR)/analysis.c
 TEST_SRC = $(SRC_DIR)/test_encoding.c
 
 # Ejecutables

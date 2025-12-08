@@ -356,7 +356,7 @@ char *decode_4b5b(const char *encoded)
 
         if (!found)
         {
-            fprintf(stderr, "Error: Secuencia 5B desconocida: %s\n", chunk);
+            //fprintf(stderr, "Error: Secuencia 5B desconocida: %s\n", chunk);
             free(decoded);
             return NULL;
         }
@@ -405,81 +405,53 @@ static int level_from_char(char c)
  * @param filename Nombre del archivo de salida
  */
 
-void plot_signal(const char *encoded, const char *filename)
+void plot_signal(const char *encoded, const char *filename) 
 {
+    if (!encoded || !filename) return;
 
-    if (encoded == NULL || filename == NULL)
-    {
-        fprintf(stderr, "Error: plot_signal recibió argumentos NULL\n");
-        return;
-    }
+    size_t len = strlen(encoded);
+    if (len == 0) return;
+    const char *cedula = "30532641";
+    double ber = 0.01;
+    FILE *f = fopen(filename, "a"); // Append
+    if (!f) return;
 
-    size_t length = strlen(encoded);
-    if (length == 0)
-    {
-        fprintf(stderr, "Error: plot_signal recibió cadena vacía\n");
-        return;
-    }
-
-    // Modo append, así no sobrescribes el archivo
-    FILE *f = fopen(filename, "a");
-    if (!f)
-    {
-        fprintf(stderr, "Error: no se pudo abrir archivo '%s'\n", filename);
-        return;
-    }
-
-    fprintf(f, "\n--------------------------------\n");
+    fprintf(f, "\n========================================\n");
+    fprintf(f, "Cédula: %s | BER: %.2f\n", cedula, ber);
     fprintf(f, "Diagrama de señal codificada\n");
     fprintf(f, "Entrada: %s\n\n", encoded);
 
-    //
-    // Detectar si es Manchester (dos bits por símbolo y siempre 01 o 10)
-    //
+    // Detectar Manchester
     int is_manchester = 0;
-    if (length % 2 == 0)
-    {
+    if (len % 2 == 0) {
         is_manchester = 1;
-        for (size_t i = 0; i < length; i += 2)
-        {
+        for (size_t i = 0; i < len; i += 2) {
             char a = encoded[i];
-            char b = encoded[i + 1];
-            if (!((a == '0' && b == '1') || (a == '1' && b == '0')))
-            {
+            char b = encoded[i+1];
+            if (!((a=='0' && b=='1') || (a=='1' && b=='0'))) {
                 is_manchester = 0;
                 break;
             }
         }
     }
 
-    //
-    // 1) Línea de tiempos
-    //
+    // Línea de tiempos
     fprintf(f, "Tiempo: ");
-    for (size_t i = 0; i < length; i++)
-    {
+    for (size_t i = 0; i < len; i++)
         fprintf(f, "%3zu ", i);
-    }
     fprintf(f, "\n");
 
-    //
-    // 2) Línea de señal
-    //
+    // Línea de señal
     fprintf(f, "Señal:  ");
-
     int prev = level_from_char(encoded[0]);
 
-    for (size_t i = 0; i < length; i++)
-    {
+    for (size_t i = 0; i < len; i++) {
         int lvl = level_from_char(encoded[i]);
-
-        // Transición respecto al anterior
         if (i > 0 && lvl != prev)
             fprintf(f, "|");
         else
             fprintf(f, " ");
 
-        // Dibujar nivel
         if (lvl == 1)
             fprintf(f, "====");
         else if (lvl == 0)
@@ -487,7 +459,7 @@ void plot_signal(const char *encoded, const char *filename)
         else
             fprintf(f, "????");
 
-        // Para Manchester, marca transición en medio del bit (si es par)
+        // Para Manchester, marcar transición en medio
         if (is_manchester && (i % 2 == 0))
             fprintf(f, "|");
 
@@ -495,6 +467,8 @@ void plot_signal(const char *encoded, const char *filename)
     }
 
     fprintf(f, "\n");
+    fprintf(f, "----------------------------------------\n");
+
     fclose(f);
 }
 
@@ -502,37 +476,20 @@ void plot_signal(const char *encoded, const char *filename)
 // Simulación de ruido
 // ============================================
 
-void add_noise(char *bitstream, double ber)
-{
-    // TODO: Implementar
-    // Invierte cada bit con probabilidad 'ber'
-    if (bitstream == NULL)
-    {
-        fprintf(stderr, "Error: add_noise recibió bitstream NULL\n");
-        return;
-    }
+void add_noise(char *bitstream, double ber) {
+    if (!bitstream) return;
+    if (ber <= 0.0) return;
+    if (ber > 1.0) ber = 1.0;
 
-    if (ber <= 0.0)
-        return; // Sin ruido
-    if (ber > 1.0)
-        ber = 1.0;
-
-    // Inicializamos el generador de números aleatorios una sola vez
     static int seed_init = 0;
-    if (!seed_init)
-    {
+    if (!seed_init) {
         srand((unsigned)time(NULL));
         seed_init = 1;
     }
 
-    for (size_t i = 0; bitstream[i] != '\0'; i++)
-    {
-
-        double r = (double)rand() / RAND_MAX; // número 0.0 - 1.0
-
-        if (r < ber)
-        {
-            // Invertimos el bit
+    for (size_t i = 0; bitstream[i]; i++) {
+        double r = (double)rand() / RAND_MAX;
+        if (r < ber) {
             bitstream[i] = (bitstream[i] == '0') ? '1' : '0';
         }
     }
