@@ -18,8 +18,8 @@ Probabilidad de bit errado (BER) = 0.010
 
 | Esquema | Media Errores | Mínimo | Máximo | Desv. Estándar |
 | :--- | :---: | :---: | :---: | :---: |
-| NRZ | 9.90 | 4 | 18 | 3.06 |
-| NRZI | 18.84 | 8 | 34 | 5.97 |
+| NRZ | 9.78 | 4 | 17 | 2.91 |
+| NRZI | 19.76 | 8 | 34 | 6.35 |
 | Manchester | 1000.00 | 1000 | 1000 | 0.00 |
 | 4B/5B | 1000.00 | 1000 | 1000 | 0.00 |
 
